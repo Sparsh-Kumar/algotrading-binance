@@ -4,8 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 class BinanceHelper:
-    def __init__ (self, creds, binanceClient, loggerInstance):
-        self.creds = creds
+    def __init__ (self, binanceClient, loggerInstance):
         self.binanceClient = binanceClient
         self.loggerInstance = loggerInstance
 
