@@ -1,0 +1,3 @@
+*.log
+binance.json
+__pycache__
