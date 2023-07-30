@@ -1,0 +1,6 @@
+binance==0.3
+numpy==1.23.2
+pandas==1.5.0
+pymongo==4.3.3
+python_binance==1.0.17
+pytz==2023.3
