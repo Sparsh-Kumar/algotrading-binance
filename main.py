@@ -6,9 +6,10 @@ from loadenv import loadEnvironmentVariables
 from binance import Client
 from binance import BinanceSocketManager
 from binanceHelper import BinanceHelper
-from strategyCodes import SMA_CROSSOVER
+from strategyCodes import SMA_CROSSOVER, SMA_CROSSOVER_RSI_TSL
 
 from strategies.smaCrossover import SMACrossOver
+from strategies.smaCrossoverRSITSL import SMACrossOverRSITSL
 
 def main():
     strategyCode = None
@@ -17,7 +18,7 @@ def main():
     argumentParser.add_argument('--quantity', type=float, dest='quantity', help='Quantity of asset to trade.')
     argumentParser.add_argument('--symbol', type=str, dest='symbol', help='Asset Symbol.')
     argumentParser.add_argument('--number', type=int, dest='number', help='Number Of Trades to Execute.')
-    argumentParser.add_argument('--strategy', type=str, choices=[SMA_CROSSOVER], dest='strategy', help=f'Strategy code to use ({ SMA_CROSSOVER })')
+    argumentParser.add_argument('--strategy', type=str, choices=[SMA_CROSSOVER, SMA_CROSSOVER_RSI_TSL], dest='strategy', help=f'Strategy code to use ({ SMA_CROSSOVER }, { SMA_CROSSOVER_RSI_TSL })')
     arguments = argumentParser.parse_args()
     loggerInstance = Logger()
     jsonEnvContent = loadEnvironmentVariables(loggerInstance, 'binance.json')
@@ -32,6 +33,13 @@ def main():
         strategyConfig = { 'short': 20, 'long': 50, 'sl': 0.005 }
         for i in range (numberOfTrades):
             strategyInstance = SMACrossOver(jsonEnvContent, binanceClient, loggerInstance, strategyConfig)
+            strategyInstance.executeStrategy(assetSymbol, quantity)
+            del strategyInstance
+            gc.collect()
+    if strategyCode == SMA_CROSSOVER_RSI_TSL:
+        strategyConfig = { 'short': 20, 'long': 50, 'sl': 0.005, 'rsi': 14 }
+        for i in range(numberOfTrades):
+            strategyInstance = SMACrossOverRSITSL(jsonEnvContent, binanceClient, loggerInstance, strategyConfig)
             strategyInstance.executeStrategy(assetSymbol, quantity)
             del strategyInstance
             gc.collect()
