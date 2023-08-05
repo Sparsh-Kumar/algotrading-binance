@@ -14,7 +14,7 @@ class SyncPriceInfo(BinanceHelper):
     def __init__ (self, creds, binanceClient, loggerInstance, assetSymbol):
         super().__init__ (binanceClient, loggerInstance)
         self.creds = creds
-        self.sleepTime = 2 # In Seconds
+        self.sleepTime = 5 # In Seconds
         self.dbClient = None
         self.databaseHandle = None
         self.collectionHandle = None
