@@ -68,7 +68,7 @@ class SMACrossOver(BinanceHelper):
                 klineData['shortsma'] = klineData['close'].rolling(self.strategyConfig['short']).mean()
                 klineData['longsma'] = klineData['close'].rolling(self.strategyConfig['long']).mean()
 
-                if (self.position is None) and (klineData.iloc[-1]['shortsma'] > klineData.iloc[-1]['longsma']) and (klineData.iloc[-2]['shortsma'] < klineData.iloc[-2]['longsma']):
+                if (self.position is None) and (int(klineData.iloc[-1]['shortsma']) > int(klineData.iloc[-1]['longsma'])) and (int(klineData.iloc[-2]['shortsma']) < int(klineData.iloc[-2]['longsma'])):
                     self.position = 'long'
                     self.buyAssetPrice = klineData.iloc[-1]['close']
                     self.totalAssetBuyPrice = self.buyAssetPrice * quantity
@@ -104,11 +104,15 @@ class SMACrossOver(BinanceHelper):
                 klineData['shortsma'] = klineData['close'].rolling(self.strategyConfig['short']).mean()
                 klineData['longsma'] = klineData['close'].rolling(self.strategyConfig['long']).mean()
 
-                if (self.position == 'long') and (((klineData.iloc[-1]['shortsma'] < klineData.iloc[-1]['longsma']) and (klineData.iloc[-2]['shortsma'] > klineData.iloc[-2]['longsma'])) or (klineData.iloc[-1]['close'] <= self.stopLossPrice)):
+                '''
+                    Testing something here, so commented out the stop loss handling.
+                '''
+                #if (self.position == 'long') and (((klineData.iloc[-1]['shortsma'] < klineData.iloc[-1]['longsma']) and (klineData.iloc[-2]['shortsma'] > klineData.iloc[-2]['longsma'])) or (klineData.iloc[-1]['close'] <= self.stopLossPrice)):
+                if (self.position == 'long') and (int(klineData.iloc[-1]['shortsma']) < int(klineData.iloc[-1]['longsma'])) and (int(klineData.iloc[-2]['shortsma']) > int(klineData.iloc[-2]['longsma'])):
                     self.position = None
                     self.sellAssetPrice = klineData.iloc[-1]['close']
                     self.totalAssetSellPrice = self.sellAssetPrice * quantity
-                    stopLossHit = bool(klineData.iloc[-1]['close'] <= self.stopLossPrice)
+                    # stopLossHit = bool(klineData.iloc[-1]['close'] <= self.stopLossPrice)
                     self.mongoDbSellOrderDetailsDoc = self.collectionHandle.find_one_and_update(
                         {
                             'tradeId': self.uuidOfTrade
@@ -119,7 +123,7 @@ class SMACrossOver(BinanceHelper):
                                 'quantity': quantity,
                                 'totalAssetSellPrice': self.totalAssetSellPrice,
                                 'timeOfSell': str(klineData.index[-1]),
-                                'stopLossHit': stopLossHit
+                                # 'stopLossHit': stopLossHit
                             }
                         },
                         return_document=ReturnDocument.AFTER
