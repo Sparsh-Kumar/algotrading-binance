@@ -37,7 +37,7 @@ def main():
             del strategyInstance
             gc.collect()
     if strategyCode == SMA_CROSSOVER_RSI_TSL:
-        strategyConfig = { 'short': 20, 'long': 50, 'sl': 0.005, 'rsi': 14 }
+        strategyConfig = { 'short': 20, 'long': 50, 'sl': 0.005, 'rsi': 50 }
         for i in range(numberOfTrades):
             strategyInstance = SMACrossOverRSITSL(jsonEnvContent, binanceClient, loggerInstance, strategyConfig)
             strategyInstance.executeStrategy(assetSymbol, quantity)
