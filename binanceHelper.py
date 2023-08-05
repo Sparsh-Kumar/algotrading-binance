@@ -8,17 +8,19 @@ class BinanceHelper:
         self.binanceClient = binanceClient
         self.loggerInstance = loggerInstance
 
-    def getLivePrice(self, tickerSymbol = None):
+    def getLivePrice(self, tickerSymbol = None, timezone = 'Asia/Kolkata'):
         try:
-            tickerInfo = None
+            info = []
             if not tickerSymbol:
                 raise Exception('Ticker symbol required.')
             allTickersInfo = self.binanceClient.get_all_tickers()
             for i in range(len(allTickersInfo)):
                 if allTickersInfo[i]['symbol'] == tickerSymbol:
                     tickerInfo = allTickersInfo[i]
+                    currentTime = datetime.now(pytz.timezone(timezone))
+                    info.append([currentTime.strftime('%Y-%m-%d %H:%M:%S %Z'), float(tickerInfo['price'])])
                     break
-            return tickerInfo
+            return info
         except Exception as e:
             self.loggerInstance.logError(str(e))
             sys.exit(1)
