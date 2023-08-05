@@ -20,6 +20,7 @@ class SMACrossOverRSITSL(BinanceHelper):
         self.uuidOfTrade = None
         self.stopLossPrice = None
         self.buyAssetPrice = None
+        self.pivotPrice = None
         self.totalAssetBuyPrice = None
         self.sellAssetPrice = None
         self.totalAssetSellPrice = None
@@ -53,10 +54,21 @@ class SMACrossOverRSITSL(BinanceHelper):
             sys.exit()
 
     def isBuyConditionSatisfied(self, klineData):
-        return (self.position is None) and (klineData.iloc[-1]['shortsma'] > klineData.iloc[-1]['longsma']) and (klineData.iloc[-2]['shortsma'] < klineData.iloc[-2]['longsma']) and (klineData.iloc[-1]['rsi'] < 70)
+        return (self.position is None) and (
+            int(klineData.iloc[-1]['shortsma']) > int(klineData.iloc[-1]['longsma'])
+        ) and (
+            int(klineData.iloc[-2]['shortsma']) < int(klineData.iloc[-2]['longsma'])
+        ) and (int(klineData.iloc[-1]['rsi']) < 70)
 
     def isSellConditionSatisfied(self, klineData):
-        return (self.position == 'long') and (((klineData.iloc[-1]['shortsma'] < klineData.iloc[-1]['longsma']) and (klineData.iloc[-2]['shortsma'] > klineData.iloc[-2]['longsma']) and (klineData.iloc[-1]['rsi'] > 30)) or (klineData.iloc[-1]['close'] <= self.stopLossPrice))
+        return (self.position == 'long') and (
+            (
+                (int(klineData.iloc[-1]['shortsma']) < int(klineData.iloc[-1]['longsma'])) and
+                (int(klineData.iloc[-2]['shortsma']) > int(klineData.iloc[-2]['longsma'])) and
+                (int(klineData.iloc[-1]['rsi']) > 30)
+            ) or
+            (klineData.iloc[-1]['close'] <= self.stopLossPrice)
+        )
 
     def executeStrategy(self, symbol = None, quantity = None):
         try:
@@ -79,6 +91,7 @@ class SMACrossOverRSITSL(BinanceHelper):
                 if self.isBuyConditionSatisfied(klineData):
                     self.position = 'long'
                     self.buyAssetPrice = klineData.iloc[-1]['close']
+                    self.pivotPrice = self.buyAssetPrice
                     self.totalAssetBuyPrice = self.buyAssetPrice * quantity
                     self.stopLossPrice = self.buyAssetPrice * (1 - self.strategyConfig['sl'])
                     self.mongoDbBuyOrderDetailsDoc = self.collectionHandle.find_one_and_update(
@@ -113,8 +126,10 @@ class SMACrossOverRSITSL(BinanceHelper):
                 klineData['longsma'] = ta.sma(klineData['close'], length = self.strategyConfig['long'])
                 klineData['rsi'] = ta.rsi(klineData['close'], length = self.strategyConfig['rsi'])
 
-                if klineData.iloc[-1]['close'] > self.buyAssetPrice:
+                if int(klineData.iloc[-1]['close']) > int(self.pivotPrice):
                     self.stopLossPrice = (klineData.iloc[-1]['close']) * (1 - self.strategyConfig['sl'])
+                    self.mongoDbBuyOrderDetailsDoc['stopLossPrice'] = self.stopLossPrice
+                    self.pivotPrice = klineData.iloc[-1]['close']
 
                 if self.isSellConditionSatisfied(klineData):
                     self.position = None
