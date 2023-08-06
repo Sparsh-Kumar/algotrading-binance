@@ -9,6 +9,7 @@ from datetime import datetime
 from binanceHelper import BinanceHelper
 from pymongo import MongoClient
 from pymongo import ReturnDocument
+from pymongo import ASCENDING
 
 class SyncPriceInfo(BinanceHelper):
     def __init__ (self, creds, binanceClient, loggerInstance, assetSymbol):
@@ -19,6 +20,7 @@ class SyncPriceInfo(BinanceHelper):
         self.databaseHandle = None
         self.collectionHandle = None
         self.assetSymbol = assetSymbol
+        self.limit = 20000
         self.dbConnect()
 
     def dbConnect(self):
@@ -34,6 +36,13 @@ class SyncPriceInfo(BinanceHelper):
         try:
             while True:
                 [priceInfo] = self.getLivePrice(self.assetSymbol)
+                docsCount = self.collectionHandle.count_documents({})
+                if docsCount and (docsCount > self.limit):
+                    numberOfDocs = docsCount - self.limit
+                    firstDocs = list(self.collectionHandle.find().sort('_id', ASCENDING).limit(numberOfDocs))
+                    delDocsIds = [record['_id'] for record in firstDocs]
+                    print(f'Deleting Records with these Ids {delDocsIds}')
+                    self.collectionHandle.delete_many({ '_id': { '$in': delDocsIds } })
                 self.collectionHandle.insert_one(
                     {
                         'timestamp': priceInfo[0],
