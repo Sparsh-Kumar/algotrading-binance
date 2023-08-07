@@ -20,7 +20,7 @@ class SyncPriceInfo(BinanceHelper):
         self.databaseHandle = None
         self.collectionHandle = None
         self.assetSymbol = assetSymbol
-        self.limit = 20000
+        self.limit = 40000
         self.dbConnect()
 
     def dbConnect(self):
